@@ -1,0 +1,46 @@
+---
+title: "Kab 8"
+author: "Shayan Kaveh"
+date: "11/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(modelsummary)
+library(corrplot)
+library(broom)
+library(here)
+library(janitor)
+```
+
+### Read in slo_homes.csv
+
+```{r}
+homes <- read_csv(here("slo_homes.csv")) %>% 
+  clean_names()
+```
+
+### Create a subset with 4 cities
+
+Task: create a subset called homes_subset that only contains observations where the city is: - "San Luis Obispo" - Atascadero - Arroyo Grande - Santa Maria-Orcutt
+
+**Use the `%in%` operator or else it will only include values that go in that specific order!!**
+
+```{r}
+homes_subset <- homes %>% 
+  filter(city %in% c("San Luis Obispo", "Atascadero", "Arroyo Grande", "Santa Maria-Orcutt")) # MAKE SURE TO USE %in% IN THIS CASE OR ELSE IT WILL ONLY INCLUDE VALUES THAT GO IN THE SPECIFIC ORDER OF THE PROVIDED VECTOR!!!
+```
+
+### A little exploration
+
+Task: create a summary table that has the mean and standard deviation of home prices grouped by city and sale status
+
+```{r, include = TRUE, eval = FALSE}
+homes_subset %>% 
+  group_by(city, status) %>% 
+  summarize(mean_price = mean(price),
+            sd_price = sd(price))
+```
+
