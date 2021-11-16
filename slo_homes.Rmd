@@ -37,10 +37,101 @@ homes_subset <- homes %>%
 
 Task: create a summary table that has the mean and standard deviation of home prices grouped by city and sale status
 
-```{r, include = TRUE, eval = FALSE}
+```{r}
 homes_subset %>% 
   group_by(city, status) %>% 
   summarize(mean_price = mean(price),
             sd_price = sd(price))
+
+# not creating a new subset data frame because this is just exploratory
+```
+
+Task: explore the relationship betwen sq footage and home price (from home_subset) in a scatterplot.
+
+```{r}
+ggplot(data = homes_subset,
+       aes(x = sq_ft, y = price)) +
+  geom_point(aes(color = city)) +
+  geom_smooth(method = "lm") # have to add (`method = "lm"`) to make it a linear model
+
+# follows a linear relationship with a positive correlation between square footage and home price
+```
+
+### Try a few linear models
+
+Use multiple linear regression to investigate relationships between several predictor variables and home price.
+
+Create 2 different permutations of this model:
+
+(1) price ~ city, bedrooms, bathrooms, sq_ft, status (lm1)
+(2) price ~ city, sq_ft, status (lm2)
+(3) price ~ bedrooms, bathrooms, status (lm3)
+
+```{r}
+lm1 <- lm(price ~ city + bedrooms + bathrooms + sq_ft + status, data = homes_subset)
+
+lm2 <- lm(price ~ city + sq_ft + status, data = homes_subset)
+
+lm3 <- lm(price ~ bedrooms + bathrooms + status, data = homes_subset)
+
+# If I wanted SLO to be the reference level:
+# Use fct_relevel to specify a new reference level
+
+new_homes_subset <- homes_subset %>% 
+  mutate(city = fct_relevel(city, "San Luis Obispo"))
+
+levels(new_homes_subset$city)
+
+# because this is below the `lm`s, it won't affect those models but if I were to redo it, now SLO would be the reference level:
+
+lm_slo <- lm(price ~ city + sq_ft, data = new_homes_subset)
+```
+
+adjusted R-squared: explains strength of relationship in difference of variance of home price based on this model
+
+
+### Explore correlations between quantitative variables
+
+Task: make a subset called homes_qant (starting from homes_subset) that only contains the variable from price through sq_ft
+
+```{r}
+homes_quant <- homes_subset %>% 
+  select(price:sq_ft)
+
+homes_cor <- cor(homes_quant)
+
+corrplot(homes_cor, method = "ellipse")
+```
+### Compare AIC values
+
+```{r}
+AIC(lm1)
+AIC(lm2)
+
+# This tells us that model 1 is actually better even though some aspects don't make as much sense
+```
+
+### Use modelsummary() to return multiple model outputs
+
+```{r}
+modelsummary(list(lm1, lm2, lm3))
+```
+
+### Check out diagnostic plots for lm1
+
+```{r}
+plot(lm1)
+```
+
+### Use broom::augment() to return the predictions for existing observations
+
+```{r}
+home_predictions <- augment(lm1)
+
+# Make a histogram of the residuals from this model (lm1)
+
+ggplot(data = home_predictions,
+       aes(x = .resid)) +
+  geom_histogram(bins = 50)
 ```
 
